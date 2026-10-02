@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Internship Tracker · Tech Cell</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+<!-- ════════ TOP NAV ════════ -->
+<header class="topnav">
+  <div class="topnav-inner">
+    <div class="topnav-brand">
+      <div class="brand-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div>
+        <span class="brand-name">Tech Cell</span>
+        <span class="brand-sep">/</span>
+        <span class="brand-sub">Internship Tracker</span>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <div class="live-pill">
+        <span class="live-dot"></span>
+        <span id="nav-clock"></span>
+      </div>
+      <div class="stat-chips">
+        <div class="stat-chip stat-here">
+          <span class="stat-num" id="stat-here-num">0</span>
+          <span class="stat-label">Here now</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-num" id="stat-total-num">0</span>
+          <span class="stat-label">Interns</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ════════ MAIN ════════ -->
+<main class="page">
+
+  <!-- ── Unified intern entry panel ── -->
+  <section class="entry-panel">
+
+    <!-- Left: smart search/check-in -->
+    <div class="entry-col entry-checkin">
+      <p class="entry-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search &amp; check in — or type a new name to register
+      </p>
+      <div class="search-field-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="checkin-input" type="text"
+          placeholder="Type intern name…" autocomplete="off" spellcheck="false" />
+        <button class="clear-btn hidden" id="clear-input-btn" aria-label="Clear">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Live lookup results -->
+      <div id="lookup-result" class="lookup-result hidden"></div>
+      <!-- Check-in confirm -->
+      <button id="confirm-checkin-btn" class="btn-checkin hidden">Check in</button>
+
+      <!-- Register-new panel — shown only when name not found -->
+      <div id="register-panel" class="register-panel hidden">
+        <div class="register-panel-head">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          <span>New intern — set dates then save</span>
+        </div>
+        <div class="field-row" style="margin-top:10px">
+          <div class="field-group">
+            <label class="field-label" for="new-intern-start">Start date</label>
+            <input type="date" id="new-intern-start" class="field-input" />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="new-intern-end">End date</label>
+            <input type="date" id="new-intern-end" class="field-input" />
+          </div>
+        </div>
+        <p id="add-intern-error" class="field-error"></p>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button type="button" class="btn-primary" id="add-intern-btn" style="flex:1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Save &amp; check in
+          </button>
+          <button type="button" class="btn-save-only" id="save-only-btn">Save only</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: today panels -->
+    <div class="entry-col entry-today">
+      <div class="mini-panel">
+        <div class="mini-panel-head">
+          <span class="panel-dot dot-green"></span>
+          <span class="mini-title">Currently here</span>
+          <span class="count-badge" id="here-count">0</span>
+          <button class="btn-ghost-xs" id="checkout-all-btn" style="margin-left:auto">Check out all</button>
+        </div>
+        <div id="here-list" class="person-list"><p class="empty-state">Nobody here yet</p></div>
+      </div>
+      <div class="mini-panel" style="margin-top:12px">
+        <div class="mini-panel-head">
+          <span class="panel-dot dot-muted"></span>
+          <span class="mini-title">Left today</span>
+          <span class="count-badge" id="left-count">0</span>
+        </div>
+        <div id="left-list" class="person-list"><p class="empty-state">Nobody has left yet</p></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── Intern roster — TIME REMAINING first ── -->
+  <section class="roster-section">
+    <div class="roster-head">
+      <h2 class="roster-title">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Time Remaining
+      </h2>
+      <div class="search-field-wrap roster-search">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="intern-search" type="text" placeholder="Filter interns…" autocomplete="off" />
+      </div>
+    </div>
+    <div id="intern-cards" class="intern-cards">
+      <p class="loading-text">Loading…</p>
+    </div>
+  </section>
+
+</main>
+
+<div id="toast-container" aria-live="polite"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
