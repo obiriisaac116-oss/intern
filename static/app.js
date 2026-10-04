@@ -180,7 +180,13 @@ function renderInternCards(list) {
         <div class="ic-avatar">${initials(p.name)}</div>
         <div class="ic-info">
           <div class="ic-name">${esc(p.name)}</div>
-          <div class="ic-reg">Registered ${p.created_at ? p.created_at.slice(0,10) : "—"}</div>
+          <div class="ic-reg">
+            ${p.institution ? `<span class="ic-institution">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              ${esc(p.institution)}
+            </span>` : ""}
+            <span>Registered ${p.created_at ? p.created_at.slice(0,10) : "—"}</span>
+          </div>
         </div>
         <div class="ic-right">
           <span class="visit-badge">${p.visit_count} visit${p.visit_count !== 1 ? "s" : ""}</span>
@@ -254,6 +260,7 @@ function resetEntry() {
   confirmBtn.classList.add("hidden");
   registerPanel.classList.add("hidden");
   addInternError.textContent = "";
+  document.getElementById("new-intern-institution").value = "";
   document.getElementById("new-intern-start").value = "";
   document.getElementById("new-intern-end").value   = "";
   delete registerPanel.dataset.renewId;
@@ -317,7 +324,9 @@ function renderLookup(results, q) {
         <div class="match-avatar">${initials(p.name)}</div>
         <div class="match-body">
           <div class="match-name">${esc(p.name)}</div>
-          <div class="match-msg">${esc(p.visit_message)}</div>
+          <div class="match-msg">
+            ${p.institution ? `<span style="color:var(--accent);font-weight:600">${esc(p.institution)}</span> · ` : ""}${esc(p.visit_message)}
+          </div>
         </div>
         ${endedBadge || `<span class="match-pill ${pillCls}">${pillText}</span>`}
       </div>`;
@@ -405,10 +414,11 @@ addInternBtn.addEventListener("click", () => saveNewIntern(true));
 saveOnlyBtn.addEventListener("click", () => saveNewIntern(false));
 
 async function saveNewIntern(andCheckin) {
-  const start   = document.getElementById("new-intern-start").value || null;
-  const end     = document.getElementById("new-intern-end").value   || null;
-  const renewId = registerPanel.dataset.renewId;   // set when renewing
-  const name    = pendingNewName.trim();
+  const institution = document.getElementById("new-intern-institution").value.trim() || null;
+  const start       = document.getElementById("new-intern-start").value || null;
+  const end         = document.getElementById("new-intern-end").value   || null;
+  const renewId     = registerPanel.dataset.renewId;
+  const name        = pendingNewName.trim();
   addInternError.textContent = "";
 
   if (!name) return;
@@ -423,7 +433,6 @@ async function saveNewIntern(andCheckin) {
     let internId;
 
     if (renewId) {
-      // Returning intern — update their dates via renew endpoint
       const updated = await api("POST", `/api/interns/${renewId}/renew`, { start_date: start, end_date: end });
       internId = updated.id;
       if (andCheckin) {
@@ -433,8 +442,7 @@ async function saveNewIntern(andCheckin) {
         toast(`${name}'s internship renewed`, "success");
       }
     } else {
-      // Brand-new intern
-      const intern = await api("POST", "/api/interns", { name, start_date: start, end_date: end });
+      const intern = await api("POST", "/api/interns", { name, institution, start_date: start, end_date: end });
       internId = intern.id;
       if (andCheckin) {
         await api("POST", "/api/checkin", { intern_id: internId });

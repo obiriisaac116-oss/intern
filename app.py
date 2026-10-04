@@ -24,11 +24,12 @@ def init_db():
         with conn.cursor() as cur:
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS interns (
-                    id         SERIAL PRIMARY KEY,
-                    name       TEXT   NOT NULL UNIQUE,
-                    start_date DATE,
-                    end_date   DATE,
-                    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+                    id          SERIAL PRIMARY KEY,
+                    name        TEXT   NOT NULL UNIQUE,
+                    institution TEXT,
+                    start_date  DATE,
+                    end_date    DATE,
+                    created_at  TIMESTAMP NOT NULL DEFAULT NOW()
                 );
 
                 CREATE TABLE IF NOT EXISTS checkins (
@@ -37,6 +38,10 @@ def init_db():
                     checked_in_at  TIMESTAMP NOT NULL DEFAULT NOW(),
                     checked_out_at TIMESTAMP
                 );
+            """)
+            # Migrate existing table — add institution if missing
+            cur.execute("""
+                ALTER TABLE interns ADD COLUMN IF NOT EXISTS institution TEXT;
             """)
         conn.commit()
 
@@ -199,10 +204,11 @@ def list_interns():
 
 @app.route("/api/interns", methods=["POST"])
 def create_intern():
-    data       = request.get_json(force=True)
-    name       = (data.get("name") or "").strip()
-    start_date = (data.get("start_date") or "") or None
-    end_date   = (data.get("end_date")   or "") or None
+    data        = request.get_json(force=True)
+    name        = (data.get("name")        or "").strip()
+    institution = (data.get("institution") or "").strip() or None
+    start_date  = (data.get("start_date")  or "") or None
+    end_date    = (data.get("end_date")    or "") or None
     if not name:
         return jsonify({"error": "name is required"}), 400
 
@@ -213,15 +219,13 @@ def create_intern():
                 return jsonify({"error": f'"{name}" is already registered'}), 409
 
             cur.execute(
-                "INSERT INTO interns (name, start_date, end_date) VALUES (%s,%s,%s) RETURNING id",
-                (name, start_date, end_date),
+                "INSERT INTO interns (name, institution, start_date, end_date) VALUES (%s,%s,%s,%s) RETURNING id",
+                (name, institution, start_date, end_date),
             )
             iid = cur.fetchone()[0]
-            cur.execute("""
-                SELECT i.*, 0 AS visit_count FROM interns i WHERE id=%s
-            """, (iid,))
+            cur.execute("SELECT i.*, 0 AS visit_count FROM interns i WHERE id=%s", (iid,))
             row = cur.fetchone()
-            d = _row_to_dict(row, cur)
+            d   = _row_to_dict(row, cur)
         conn.commit()
 
     d.update(_duration_stats(d.get("start_date"), d.get("end_date")))
@@ -230,18 +234,19 @@ def create_intern():
 
 @app.route("/api/interns/<int:iid>", methods=["PUT"])
 def update_intern(iid):
-    data       = request.get_json(force=True)
-    name       = (data.get("name") or "").strip()
-    start_date = (data.get("start_date") or "") or None
-    end_date   = (data.get("end_date")   or "") or None
+    data        = request.get_json(force=True)
+    name        = (data.get("name")        or "").strip()
+    institution = (data.get("institution") or "").strip() or None
+    start_date  = (data.get("start_date")  or "") or None
+    end_date    = (data.get("end_date")    or "") or None
     if not name:
         return jsonify({"error": "name is required"}), 400
 
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "UPDATE interns SET name=%s, start_date=%s, end_date=%s WHERE id=%s",
-                (name, start_date, end_date, iid),
+                "UPDATE interns SET name=%s, institution=%s, start_date=%s, end_date=%s WHERE id=%s",
+                (name, institution, start_date, end_date, iid),
             )
             cur.execute("""
                 SELECT i.*, COUNT(c.id) AS visit_count

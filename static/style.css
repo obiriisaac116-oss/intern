@@ -366,7 +366,14 @@ body {
 }
 .ic-info  { flex: 1; min-width: 0; }
 .ic-name  { font-weight: 700; font-size: .95rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ic-reg   { font-size: .71rem; color: var(--text3); margin-top: 1px; }
+.ic-reg   {
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: .71rem; color: var(--text3); margin-top: 2px;
+}
+.ic-institution {
+  display: inline-flex; align-items: center; gap: 3px;
+  color: var(--accent); font-weight: 600; font-size: .72rem;
+}
 .ic-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
 .visit-badge {
