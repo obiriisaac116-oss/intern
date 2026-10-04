@@ -4,7 +4,12 @@ from flask import Flask, request, jsonify, render_template
 from datetime import datetime, date, timezone
 
 app = Flask(__name__)
-DB_PATH = os.path.join(os.path.dirname(__file__), "tracker.db")
+# On Render the DB_PATH env var points to /data/tracker.db (persistent disk).
+# Locally it falls back to tracker.db next to this file.
+DB_PATH = os.environ.get(
+    "DB_PATH",
+    os.path.join(os.path.dirname(__file__), "tracker.db"),
+)
 
 
 # ---------------------------------------------------------------------------
