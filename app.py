@@ -141,11 +141,18 @@ def _row_to_dict(row, cursor):
 
 
 # ---------------------------------------------------------------------------
-# Initialise on startup
+# Initialise on first request (not at import time — DATABASE_URL may not
+# be available yet when gunicorn loads the module on Render)
 # ---------------------------------------------------------------------------
 
-with app.app_context():
-    init_db()
+_db_initialised = False
+
+@app.before_request
+def ensure_db():
+    global _db_initialised
+    if not _db_initialised:
+        init_db()
+        _db_initialised = True
 
 
 # ---------------------------------------------------------------------------
